@@ -46,16 +46,13 @@ function generatePath2(p, ks, ps, ws) {
     }
     return "M" + result.substring(1);
 }
-</script>
-</head>
-<body>
-<svg id="r" xmlns="http://www.w3.org/2000/svg" version="1.1" width="800px" height="600px">
-<g transform="translate(0, 600) scale(1, -1)">
-<g id="graphs">
-</g>
-</g>
-</svg>
-<script>
+
+var degree = 2;
+var knots = [0, 1, 2, 200, 400, 600, 798, 799, 800];
+var count = knots.length - degree - 1;
+var points = [350, 450, 350, 350, 450, 350];
+var weights = [1, 1, 1, 1, 2, 1];
+
 function randomHexColor() {
     var result = Math.floor(Math.random() * 200).toString(16);
     while (result.length < 2) {
@@ -64,29 +61,103 @@ function randomHexColor() {
     return result;
 }
 
-var graphs = document.getElementById("graphs");
-while (graphs.hasChildNodes()) {
-    graphs.removeChild(graphs.childNodes[0]);
-}
-var degree = 2;
-var knots = [0, 1, 2, 200, 400, 600, 798, 799, 800];
-var count = knots.length - degree - 1;
-var points = [350, 450, 350, 350, 450, 350];
-var weights = [1, 1, 1, 1, 2, 1];
-for (var i = 0; i < count; ++i) {
+function update() {
+    var controls = document.getElementById("controls");
+    while (controls.childNodes.length < knots.length) {
+        var wrapper = document.createElement("div");
+        var control = document.createElement("input");
+        wrapper.appendChild(control);
+        control.setAttribute("type", "range");
+        control.setAttribute("min", "0");
+        control.setAttribute("max", "800");
+        control.setAttribute("value", knots[controls.childNodes.length].toString());
+        control.setAttribute("step", "any");
+        control.style.width = "800px";
+        control.addEventListener("change", update);
+        controls.appendChild(wrapper);
+    }
+    while (controls.childNodes.length > knots.length) {
+        controls.removeChild(controls.childNodes[controls.childNodes.length - 1]);
+    }
+    for (var i = 0; i < controls.childNodes.length; ++i) {
+        knots[i] = controls.childNodes[i].childNodes[0].valueAsNumber;
+    }
+
+    var coefficients = document.getElementById("coefficients");
+    while (coefficients.childNodes.length < points.length) {
+        var control = document.createElement("input");
+        control.setAttribute("type", "range");
+        control.setAttribute("min", "0");
+        control.setAttribute("max", "600");
+        control.setAttribute("value", points[coefficients.childNodes.length].toString());
+        control.setAttribute("step", "any");
+        control.style.height = "600px";
+        control.style.width = "20px";
+        control.style.webkitAppearance = "slider-vertical";
+        control.addEventListener("change", update);
+        coefficients.appendChild(control);
+    }
+    while (coefficients.childNodes.length > points.length) {
+        coefficients.removeChild(coefficients.childNodes[coefficients.childNodes.length - 1]);
+    }
+    for (var i = 0; i < coefficients.childNodes.length; ++i) {
+        points[i] = coefficients.childNodes[i].valueAsNumber;
+    }
+
+    var weightElements = document.getElementById("weights");
+    while (weightElements.childNodes.length < weights.length) {
+        var control = document.createElement("input");
+        control.setAttribute("type", "range");
+        control.setAttribute("min", "0");
+        control.setAttribute("max", "5");
+        control.setAttribute("value", weights[weightElements.childNodes.length].toString());
+        control.setAttribute("step", "any");
+        control.style.height = "600px";
+        control.style.width = "20px";
+        control.style.webkitAppearance = "slider-vertical";
+        control.addEventListener("change", update);
+        weightElements.appendChild(control);
+    }
+    while (weightElements.childNodes.length > weights.length) {
+        weightElements.removeChild(weightElements.childNodes[weightElements.childNodes.length - 1]);
+    }
+    for (var i = 0; i < weightElements.childNodes.length; ++i) {
+        weights[i] = weightElements.childNodes[i].valueAsNumber;
+    }
+
+    var graphs = document.getElementById("graphs");
+    while (graphs.hasChildNodes()) {
+        graphs.removeChild(graphs.childNodes[0]);
+    }
+
+    for (var i = 0; i < count; ++i) {
+        var graph = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        graph.setAttribute("fill", "none");
+        graph.setAttribute("stroke", "#" + randomHexColor() + randomHexColor() + randomHexColor());
+        graph.setAttribute("stroke-width", "5px");
+        graph.setAttribute("d", generatePath(i, degree, knots));
+        graphs.appendChild(graph);
+    }
     var graph = document.createElementNS("http://www.w3.org/2000/svg", "path");
     graph.setAttribute("fill", "none");
     graph.setAttribute("stroke", "#" + randomHexColor() + randomHexColor() + randomHexColor());
     graph.setAttribute("stroke-width", "5px");
-    graph.setAttribute("d", generatePath(i, degree, knots));
+    graph.setAttribute("d", generatePath2(degree, knots, points, weights));
     graphs.appendChild(graph);
 }
-var graph = document.createElementNS("http://www.w3.org/2000/svg", "path");
-graph.setAttribute("fill", "none");
-graph.setAttribute("stroke", "#" + randomHexColor() + randomHexColor() + randomHexColor());
-graph.setAttribute("stroke-width", "5px");
-graph.setAttribute("d", generatePath2(degree, knots, points, weights));
-graphs.appendChild(graph);
 </script>
+</head>
+<body onload="update();">
+<div>
+<svg id="r" xmlns="http://www.w3.org/2000/svg" version="1.1" width="800px" height="600px">
+<g transform="translate(0, 600) scale(1, -1)">
+<g id="graphs">
+</g>
+</g>
+</svg>
+<span id="coefficients"></span>
+<span id="weights"></span>
+</div>
+<div id="controls"></div>
 </body>
 </html>
