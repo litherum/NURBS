@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>
+function f(i, p, u, ks) {
+    return (u - ks[i]) / (ks[i + p] - ks[i]);
+}
+
+function g(i, p, u, ks) {
+    return (ks[i + p] - u) / (ks[i + p] - ks[i]);
+}
+
+function n(i, p, u, ks) {
+    if (p == 0) {
+        if (ks[i] <= u && u < ks[i + 1]) {
+            return 1;
+        }
+        return 0;
+    }
+    return f(i, p, u, ks) * n(i, p - 1, u, ks) + g(i + 1, p, u, ks) * n(i + 1, p - 1, u, ks);
+}
+
+function c(p, u, ks, ps, ws) {
+    var numerator = 0;
+    var denominator = 0;
+    for (var i = 0; i < ps.length; ++i) {
+        var coefficient = n(i, p, u, ks) * ws[i];
+        numerator += coefficient * ps[i];
+        denominator += coefficient;
+    }
+    return numerator / denominator;
+}
+
+function generatePath(i, p, ks) {
+    var result = "";
+    for (var u = ks[0]; u <= ks[ks.length - 1]; ++u) {
+        result += "L " + u + " " + 300 * n(i, p, u, ks) + " ";
+    }
+    return "M" + result.substring(1);
+}
+
+function generatePath2(p, ks, ps, ws) {
+    var result = "";
+    for (var u = ks[0] + 1; u < ks[ks.length - 1]; ++u) {
+        result += "L " + u + " " + c(p, u, ks, ps, ws) + " ";
+    }
+    return "M" + result.substring(1);
+}
+</script>
+</head>
+<body>
+<svg id="r" xmlns="http://www.w3.org/2000/svg" version="1.1" width="800px" height="600px">
+<g transform="translate(0, 600) scale(1, -1)">
+<g id="graphs">
+</g>
+</g>
+</svg>
+<script>
+function randomHexColor() {
+    var result = Math.floor(Math.random() * 200).toString(16);
+    while (result.length < 2) {
+        result = "0" + result;
+    }
+    return result;
+}
+
+var graphs = document.getElementById("graphs");
+while (graphs.hasChildNodes()) {
+    graphs.removeChild(graphs.childNodes[0]);
+}
+var degree = 2;
+var knots = [0, 1, 2, 200, 400, 600, 798, 799, 800];
+var count = knots.length - degree - 1;
+var points = [350, 450, 350, 350, 450, 350];
+var weights = [1, 1, 1, 1, 2, 1];
+for (var i = 0; i < count; ++i) {
+    var graph = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    graph.setAttribute("fill", "none");
+    graph.setAttribute("stroke", "#" + randomHexColor() + randomHexColor() + randomHexColor());
+    graph.setAttribute("stroke-width", "5px");
+    graph.setAttribute("d", generatePath(i, degree, knots));
+    graphs.appendChild(graph);
+}
+var graph = document.createElementNS("http://www.w3.org/2000/svg", "path");
+graph.setAttribute("fill", "none");
+graph.setAttribute("stroke", "#" + randomHexColor() + randomHexColor() + randomHexColor());
+graph.setAttribute("stroke-width", "5px");
+graph.setAttribute("d", generatePath2(degree, knots, points, weights));
+graphs.appendChild(graph);
+</script>
+</body>
+</html>
