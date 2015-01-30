@@ -21,6 +21,14 @@
                 return f(i, p, u, ks) * n(i, p - 1, u, ks) + g(i + 1, p, u, ks) * n(i + 1, p - 1, u, ks);
             }
 
+            function r(i, p, u, ks, ws) {
+                var denominator = 0;
+                for (var j = 0; j < ws.length; ++j) {
+                    denominator += n(j, p, u, ks) * ws[j];
+                }
+                return n(i, p, u, ks) * ws[i] / denominator;
+            }
+
             google.load("visualization", "1", {packages:["corechart"]});
             google.setOnLoadCallback(drawChart);
 
@@ -28,7 +36,10 @@
                 var degree = 4;
                 var knots = [0, 1, 2, 3, 4, 100, 200, 300, 400, 500, 600, 601, 602, 603, 604];
                 var count = knots.length - degree - 1;
-                //var weights = [1, 1, 1, 1, 2, 1];
+                var weights = [1, 1, 1, 1, 1, 1, 5, 1, 1, 1];
+                if (weights.length != count) {
+                    return;
+                }
 
                 var data = [];
                 var rowData = ["x"];
@@ -44,16 +55,42 @@
                     data.push(rowData);
                 }
 
+                var rationalData = [];
+                var rationalRowData = ["x"];
+                for (var i = 0; i < count; ++i) {
+                    rationalRowData.push(i.toString());
+                }
+                rationalData.push(rationalRowData);
+                for (var u = knots[0] + 1; u < knots[knots.length - 1]; ++u) {
+                    var rationalRowData = [u.toString()];
+                    for (var i = 0; i < count; ++i) {
+                        rationalRowData.push(r(i, degree, u, knots, weights));
+                    }
+                    rationalData.push(rationalRowData);
+                }
+
                 var dataTable = google.visualization.arrayToDataTable(data);
                 var chart = new google.visualization.AreaChart(document.getElementById("chartContainer"));
                 var stackedChart = new google.visualization.AreaChart(document.getElementById("stackedChartContainer"));
+
+                var rationalDataTable = google.visualization.arrayToDataTable(rationalData);
+                var rationalChart = new google.visualization.AreaChart(document.getElementById("rationalChartContainer"));
+                var rationalStackedChart = new google.visualization.AreaChart(document.getElementById("rationalStackedChartContainer"));
                 chart.draw(dataTable, {});
                 stackedChart.draw(dataTable, {isStacked: true});
+                rationalChart.draw(rationalDataTable, {});
+                rationalStackedChart.draw(rationalDataTable, {isStacked: true});
             }
         </script>
     </head>
     <body>
-        <div id="chartContainer" style="display: inline-block; width: 800px; height: 600px;"></div>
-        <div id="stackedChartContainer" style="display: inline-block; width: 800px; height: 600px;"></div>
+        <div>
+            <div id="chartContainer" style="display: inline-block; width: 800px; height: 600px;"></div>
+            <div id="stackedChartContainer" style="display: inline-block; width: 800px; height: 600px;"></div>
+        </div>
+        <div>
+            <div id="rationalChartContainer" style="display: inline-block; width: 800px; height: 600px;"></div>
+            <div id="rationalStackedChartContainer" style="display: inline-block; width: 800px; height: 600px;"></div>
+        </div>
     </body>
 </html>
