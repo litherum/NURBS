@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+        <script type="text/javascript">
+            function f(i, p, u, ks) {
+                return (u - ks[i]) / (ks[i + p] - ks[i]);
+            }
+
+            function g(i, p, u, ks) {
+                return (ks[i + p] - u) / (ks[i + p] - ks[i]);
+            }
+
+            function n(i, p, u, ks) {
+                if (p == 0) {
+                    if (ks[i] <= u && u < ks[i + 1]) {
+                        return 1;
+                    }
+                    return 0;
+                }
+                return f(i, p, u, ks) * n(i, p - 1, u, ks) + g(i + 1, p, u, ks) * n(i + 1, p - 1, u, ks);
+            }
+
+            google.load("visualization", "1", {packages:["corechart"]});
+            google.setOnLoadCallback(drawChart);
+
+            function drawChart() {
+                var degree = 4;
+                var knots = [0, 1, 2, 3, 4, 100, 200, 300, 400, 500, 600, 601, 602, 603, 604];
+                var count = knots.length - degree - 1;
+                //var weights = [1, 1, 1, 1, 2, 1];
+
+                var data = [];
+                var rowData = ["x"];
+                for (var i = 0; i < count; ++i) {
+                    rowData.push(i.toString());
+                }
+                data.push(rowData);
+                for (var u = knots[0] + 1; u < knots[knots.length - 1]; ++u) {
+                    var rowData = [u.toString()];
+                    for (var i = 0; i < count; ++i) {
+                        rowData.push(n(i, degree, u, knots));
+                    }
+                    data.push(rowData);
+                }
+
+                var dataTable = google.visualization.arrayToDataTable(data);
+                var chart = new google.visualization.AreaChart(document.getElementById("chartContainer"));
+                var stackedChart = new google.visualization.AreaChart(document.getElementById("stackedChartContainer"));
+                chart.draw(dataTable, {});
+                stackedChart.draw(dataTable, {isStacked: true});
+            }
+        </script>
+    </head>
+    <body>
+        <div id="chartContainer" style="display: inline-block; width: 800px; height: 600px;"></div>
+        <div id="stackedChartContainer" style="display: inline-block; width: 800px; height: 600px;"></div>
+    </body>
+</html>
